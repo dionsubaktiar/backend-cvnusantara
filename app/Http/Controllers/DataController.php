@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Data; // Assuming you have a Data model
+use App\Models\Account;
+use App\Models\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -202,30 +203,34 @@ class DataController extends Controller
 
     public function pinVerified(Request $request)
     {
-        $key = env('PIN_CORRECT');
-        $key_admin = env('PIN_ADMIN');
+        $acc = Account::where('pin', '=', $request->pin)->first();
 
-        if ($request->input('pin') === $key) {
-            // Generate a verification token
-            $verificationToken = base64_encode('verified_' . now());
+        if ($acc) {
+            if ($acc->role == 'Super') {
 
-            return response()->json([
-                'success' => true,
-                'verification_token' => $verificationToken,
-                'role' => 'Super'
-            ]);
-        } elseif ($request->input('pin') === $key_admin) {
-            $verificationToken = base64_encode('verified_' . now());
+                $verificationToken = base64_encode('verified_' . now());
 
-            return response()->json([
-                'success' => true,
-                'verification_token' => $verificationToken,
-                'role' => 'Admin'
-            ]);
+                return response()->json([
+                    'success' => true,
+                    'verification_token' => $verificationToken,
+                    'role' => 'Super'
+                ]);
+            } elseif ($acc->role == 'Admin') {
+                $verificationToken = base64_encode('verified_' . now());
+
+                return response()->json([
+                    'success' => true,
+                    'verification_token' => $verificationToken,
+                    'role' => 'Admin'
+                ]);
+            } else {
+                return response()->json(['success' => false, 'message' => 'Invalid role']);
+            }
         } else {
             return response()->json(['success' => false, 'message' => 'Invalid PIN']);
         }
     }
+
 
     public function lockscreen(Request $request)
     {

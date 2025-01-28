@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Account;
 use App\Models\Data;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
@@ -5170,5 +5171,14 @@ class DataSeeder extends Seeder
                 ]);
             }
         }
+
+        Account::create([
+            'pin' => '172179',
+            'role' => 'Super'
+        ]);
+        Account::create([
+            'pin' => '000111',
+            'role' => 'Admin'
+        ]);
     }
 }
