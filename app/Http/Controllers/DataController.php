@@ -6,6 +6,7 @@ use App\Models\Account;
 use App\Models\Data;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class DataController extends Controller
@@ -147,14 +148,14 @@ class DataController extends Controller
         return response()->json($data);
     }
 
-    // Update a data record
     public function update(Request $request, $id)
     {
         $data = Data::find($id);
         if (!$data) {
-            return response()->json(['message' => 'Data not found']);
+            return response()->json(['message' => 'Data not found'], 404);
         }
 
+        // Validate input fields and file upload
         $validatedData = Validator::make($request->all(), [
             'tanggal' => 'sometimes|date',
             'nopol' => 'sometimes|string',
@@ -164,20 +165,47 @@ class DataController extends Controller
             'uj' => 'sometimes|numeric',
             'harga' => 'sometimes|numeric',
             'status' => 'sometimes|string',
-            'status_sj' => 'sometimes|string'
+            'status_sj' => 'sometimes|string',
+            'foto' => 'sometimes|file|mimes:jpeg,png,jpg,gif|max:2048', // Validate file
         ]);
 
         if ($validatedData->fails()) {
             return response()->json(['errors' => $validatedData->errors()], 422);
         }
 
-        $tanggal_update = Carbon::now();
+        // Update `tanggal_update_sj` if `status_sj` is provided
         if ($request->status_sj) {
-            $request->merge(['tanggal_update_sj' => $tanggal_update]);
+            $data->tanggal_update_sj = now();
         }
-        $data->update($request->all());
-        return response()->json($data, 200);
+
+        // Handle file upload
+        if ($request->hasFile('foto')) {
+            // Delete old file if exists
+            if ($data->foto) {
+                Storage::disk('public')->delete($data->foto);
+            }
+
+            // Store new file
+            $path = $request->file('foto')->store('uploads', 'public'); // Stores file in storage/app/public/uploads
+            $data->foto = $path; // Store the file path in database
+        }
+
+        // Update data
+        $data->update($request->except('foto')); // Exclude 'foto' from mass assignment
+
+        // Save updated foto if uploaded
+        if ($request->hasFile('foto')) {
+            $data->save();
+        }
+
+        return response()->json([
+            'message' => 'Data updated successfully',
+            'data' => $data,
+            'photo_url' => $data->foto ? asset("storage/{$data->foto}") : null, // Correct public URL
+        ], 200);
     }
+
+
 
     // Delete a data record
     public function destroy($id)

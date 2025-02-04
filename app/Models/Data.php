@@ -16,6 +16,7 @@ class Data extends Model
         'harga',
         'status',
         'status_sj',
-        'tanggal_update_sj'
+        'tanggal_update_sj',
+        'foto'
     ];
 }

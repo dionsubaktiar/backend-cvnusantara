@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('status');
             $table->string('status_sj');
             $table->date('tanggal_update_sj');
+            $table->string('foto')->nullable();
             $table->timestamps();
         });
     }
