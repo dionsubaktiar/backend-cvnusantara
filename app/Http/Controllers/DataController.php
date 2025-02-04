@@ -35,6 +35,7 @@ class DataController extends Controller
                         'tanggal_update_sj' => $item->tanggal_update_sj,
                         'harga' => $item->harga,
                         'uj' => $item->uj,
+                        'foto' => $item->foto
                     ];
                 }),
             ];
