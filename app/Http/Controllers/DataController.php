@@ -167,7 +167,7 @@ class DataController extends Controller
             'harga' => 'sometimes|numeric',
             'status' => 'sometimes|string',
             'status_sj' => 'sometimes|string',
-            'foto' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
+            // 'foto' => 'nullable|file|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validatedData->fails()) {
