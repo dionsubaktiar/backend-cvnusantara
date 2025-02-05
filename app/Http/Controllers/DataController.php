@@ -187,17 +187,11 @@ class DataController extends Controller
             }
 
             // Store new file
-            $path = $request->file('foto')->store('uploads', 'public'); // Stores file in storage/app/public/uploads
-            $data->foto = $path; // Store the file path in database
+            $path = $request->file('foto')->store('uploads', 'public');
+            $data->foto = $path;
         }
 
-        // Update data
-        $data->update($request->except('foto')); // Exclude 'foto' from mass assignment
-
-        // Save updated foto if uploaded
-        if ($request->hasFile('foto')) {
-            $data->save();
-        }
+        $data->update($request->except('foto'));
 
         return response()->json([
             'message' => 'Data updated successfully',
@@ -205,8 +199,6 @@ class DataController extends Controller
             'photo_url' => $data->foto ? asset("storage/{$data->foto}") : null, // Correct public URL
         ], 200);
     }
-
-
 
     // Delete a data record
     public function destroy($id)
