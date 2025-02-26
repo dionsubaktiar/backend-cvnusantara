@@ -258,4 +258,37 @@ class DataController extends Controller
         // Invalidate verification on client-side by simply removing the token
         return response()->json(['success' => true, 'message' => 'Locked']);
     }
+
+    public function recapData(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'driver' => 'string|nullable',
+            'origin' => 'string|nullable',
+            'nopol' => 'string|nullable'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $query = Data::query();
+
+        if ($request->filled('driver')) {
+            $query->where('driver', 'like', '%' . $request->input('driver') . '%');
+        }
+
+        if ($request->filled('origin')) {
+            $query->where('origin', 'like', '%' . $request->input('origin') . '%');
+        }
+
+        if ($request->filled('nopol')) {
+            $query->where('nopol', 'like', $request->input('nopol') . '%');
+        }
+
+        $query->orderBy('tanggal', 'asc');
+
+        $data = $query->get();
+
+        return response()->json($data);
+    }
 }
