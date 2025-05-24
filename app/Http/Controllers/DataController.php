@@ -264,7 +264,9 @@ class DataController extends Controller
         $validator = Validator::make($request->all(), [
             'driver' => 'string|nullable',
             'origin' => 'string|nullable',
-            'nopol' => 'string|nullable'
+            'nopol' => 'string|nullable',
+            'tanggal_start' => 'date|nullable',
+            'tanggal_end' => 'date|nullable',
         ]);
 
         if ($validator->fails()) {
@@ -285,8 +287,15 @@ class DataController extends Controller
             $query->where('nopol', 'like', $request->input('nopol') . '%');
         }
 
-        $query->orderBy('tanggal', 'asc');
+        if ($request->filled('tanggal_start') && $request->filled('tanggal_end')) {
+            $query->whereBetween('tanggal', [$request->input('tanggal_start'), $request->input('tanggal_end')]);
+        } elseif ($request->filled('tanggal_start')) {
+            $query->whereDate('tanggal', '>=', $request->input('tanggal_start'));
+        } elseif ($request->filled('tanggal_end')) {
+            $query->whereDate('tanggal', '<=', $request->input('tanggal_end'));
+        }
 
+        $query->orderBy('tanggal', 'asc');
         $data = $query->get();
 
         return response()->json($data);
