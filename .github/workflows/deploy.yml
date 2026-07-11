@@ -1,0 +1,56 @@
+name: Deploy Laravel Subdomain
+
+on:
+  push:
+    branches:
+      - main # Jalankan deployment saat ada push ke branch main/master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2" # Sesuaikan dengan versi PHP server Anda
+          extensions: mbstring, xml, ctype, iconv, mysql, zip
+
+      - name: Install Composer Dependencies
+        run: composer install --no-progress --no-suggest --prefer-dist --optimize-autoloader --no-dev
+
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            # Pindah ke direktori subdomain Laravel Anda
+            cd /var/www/html/backend.rinsgloballogistic.com # UBAH KE PATH SERVER ANDA
+
+            # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
+            php artisan down || true
+
+            # Ambil kode terbaru dari github
+            git pull origin main
+
+            # Install/update dependensi di server
+            composer install --no-dev --optimize-autoloader
+
+            # Jalankan migrasi database dan seeder
+            # --force wajib digunakan agar bisa berjalan di mode production tanpa interaksi prompt
+            php artisan migrate --force
+            php artisan db:seed --force
+
+            # Clear cache agar konfigurasi terbaru terbaca
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # Matikan mode maintenance
+            php artisan up
