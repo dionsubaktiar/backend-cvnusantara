@@ -31,16 +31,26 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Pindah ke direktori subdomain Laravel Anda
-            echo "=== Current Working Directory ==="
-            pwd
+            cd ~/domains/rinsgloballogistic.com/public_html/backend
 
-            echo "=== Home Directory Contents ==="
-            ls -la
+            # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
+            php artisan down || true
 
-            echo "=== Finding artisan file on the server ==="
-            find ~ -maxdepth 4 -name "artisan" 2>/dev/null
+            # Ambil kode terbaru dari github
+            git pull origin main
 
-            echo "=== Finding backend directory on the server ==="
-            find ~ -maxdepth 4 -type d -name "*backend*" 2>/dev/null
+            # Install/update dependensi di server
+            composer install --no-dev --optimize-autoloader
 
-            exit 1
+            # Jalankan migrasi database dan seeder
+            # --force wajib digunakan agar bisa berjalan di mode production tanpa interaksi prompt
+            php artisan migrate --force
+            php artisan db:seed --force
+
+            # Clear cache agar konfigurasi terbaru terbaca
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # Matikan mode maintenance
+            php artisan up
