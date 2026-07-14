@@ -33,14 +33,32 @@ jobs:
             # Pindah ke direktori subdomain Laravel Anda
             cd ~/domains/rinsgloballogistic.com/public_html/backend
 
-            # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
-            php artisan down || true
-
             # Ambil kode terbaru dari github
             git pull origin main
 
             # Install/update dependensi di server
             composer install --no-dev --optimize-autoloader
+
+            # Buat file .env jika belum ada
+            if [ ! -f .env ]; then
+                cp .env.example .env
+                php artisan key:generate
+            fi
+
+            # Set database credentials di .env
+            sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
+            sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
+            sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
+            sed -i 's/^DB_DATABASE=.*/DB_DATABASE=u288448786_backend/' .env
+            sed -i 's/^DB_USERNAME=.*/DB_USERNAME=u288448786_backend/' .env
+            if grep -q "^DB_PASSWORD=" .env; then
+                sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=A!5uCY8Y!I/' .env
+            else
+                echo "DB_PASSWORD=A!5uCY8Y!I" >> .env
+            fi
+
+            # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
+            php artisan down || true
 
             # Jalankan migrasi database dan seeder
             # --force wajib digunakan agar bisa berjalan di mode production tanpa interaksi prompt
