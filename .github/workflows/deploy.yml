@@ -31,7 +31,7 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             # Pindah ke direktori subdomain Laravel Anda
-            cd /var/www/html/backend.rinsgloballogistic.com # UBAH KE PATH SERVER ANDA
+            cd ~/public_html/backend
 
             # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
             php artisan down || true
