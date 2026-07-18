@@ -36,8 +36,8 @@ jobs:
             # 2. Ambil kode terbaru dari GitHub
             git pull origin main
 
-            # 3. Install/update dependensi di server
-            composer install --no-dev --optimize-autoloader
+            # 3. [PENTING] Ditambahkan --no-scripts untuk bypass proc_open Hostinger
+            composer install --no-dev --optimize-autoloader --no-scripts
 
             # 4. Buat file .env jika belum ada
             if [ ! -f .env ]; then
@@ -57,11 +57,12 @@ jobs:
                 echo 'DB_PASSWORD="A!5uCY8Y!I"' >> .env
             fi
 
-            # 6. Bersihkan cache lama AGAR password .env di atas langsung terbaca
+            # 6. Bersihkan cache & jalankan discovery manual pasca composer --no-scripts
             php artisan config:clear
             php artisan cache:clear
+            php artisan package:discover --ansi
 
-            # 7. Aktifkan mode maintenance (biar user tidak melihat halaman error pas proses seeder)
+            # 7. Aktifkan mode maintenance
             php artisan down || true
 
             # 8. Jalankan migrasi dan seeder secara spesifik
@@ -73,5 +74,5 @@ jobs:
             php artisan route:cache
             php artisan view:cache
 
-            # 10. Matikan mode maintenance (website online kembali)
+            # 10. Matikan mode maintenance
             php artisan up
