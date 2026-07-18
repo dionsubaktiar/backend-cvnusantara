@@ -52,9 +52,9 @@ jobs:
             sed -i 's/^DB_DATABASE=.*/DB_DATABASE=u288448786_backend/' .env
             sed -i 's/^DB_USERNAME=.*/DB_USERNAME=u288448786_backend/' .env
             if grep -q "^DB_PASSWORD=" .env; then
-                sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD=A!5uCY8Y!I/' .env
+                sed -i 's/^DB_PASSWORD=.*/DB_PASSWORD="A!5uCY8Y!I"/' .env
             else
-                echo "DB_PASSWORD=A!5uCY8Y!I" >> .env
+                echo 'DB_PASSWORD="A!5uCY8Y!I"' >> .env
             fi
 
             # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
