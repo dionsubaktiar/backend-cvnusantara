@@ -36,7 +36,7 @@ jobs:
             # 2. Ambil kode terbaru dari GitHub
             git pull origin main
 
-            # 3. [PENTING] Ditambahkan --no-scripts untuk bypass proc_open Hostinger
+            # 3. Install dependensi di server dengan bypass script proc_open Hostinger
             composer install --no-dev --optimize-autoloader --no-scripts
 
             # 4. Buat file .env jika belum ada
@@ -57,22 +57,27 @@ jobs:
                 echo 'DB_PASSWORD="A!5uCY8Y!I"' >> .env
             fi
 
-            # 6. Bersihkan cache & jalankan discovery manual pasca composer --no-scripts
+            # 6. [PENTING] Hapus file cache manifest fisik untuk membuang sisa package dev (Pail, Sail, dll)
+            rm -f bootstrap/cache/packages.php
+            rm -f bootstrap/cache/services.php
+            rm -f bootstrap/cache/config.php
+
+            # 7. Bersihkan cache & jalankan discovery manual pasca composer --no-scripts
             php artisan config:clear
             php artisan cache:clear
             php artisan package:discover --ansi
 
-            # 7. Aktifkan mode maintenance
+            # 8. Aktifkan mode maintenance
             php artisan down || true
 
-            # 8. Jalankan migrasi dan seeder secara spesifik
+            # 9. Jalankan migrasi dan seeder
             php artisan migrate --force
             php artisan db:seed --class=DatabaseSeeder --force
 
-            # 9. Lakukan caching optimasi untuk production
+            # 10. Lakukan caching optimasi untuk production
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
 
-            # 10. Matikan mode maintenance
+            # 11. Matikan mode maintenance
             php artisan up
