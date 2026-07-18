@@ -3,7 +3,7 @@ name: Deploy Laravel Subdomain
 on:
   push:
     branches:
-      - main # Jalankan deployment saat ada push ke branch main/master
+      - main # Jalankan deployment saat ada push ke branch main
 
 jobs:
   deploy:
@@ -16,7 +16,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2" # Sesuaikan dengan versi PHP server Anda
+          php-version: "8.2" # Sesuaikan dengan versi PHP server Hostinger Anda
           extensions: mbstring, xml, ctype, iconv, mysql, zip
 
       - name: Install Composer Dependencies
@@ -30,22 +30,22 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            # Pindah ke direktori subdomain Laravel Anda
+            # 1. Masuk ke direktori backend di Hostinger
             cd ~/domains/rinsgloballogistic.com/public_html/backend
 
-            # Ambil kode terbaru dari github
+            # 2. Ambil kode terbaru dari GitHub
             git pull origin main
 
-            # Install/update dependensi di server
+            # 3. Install/update dependensi di server
             composer install --no-dev --optimize-autoloader
 
-            # Buat file .env jika belum ada
+            # 4. Buat file .env jika belum ada
             if [ ! -f .env ]; then
                 cp .env.example .env
                 php artisan key:generate
             fi
 
-            # Set database credentials di .env
+            # 5. Set database credentials di .env secara otomatis
             sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=mysql/' .env
             sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env
             sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env
@@ -57,18 +57,21 @@ jobs:
                 echo 'DB_PASSWORD="A!5uCY8Y!I"' >> .env
             fi
 
-            # Aktifkan mode maintenance (opsional, agar user tidak error saat deploy)
+            # 6. Bersihkan cache lama AGAR password .env di atas langsung terbaca
+            php artisan config:clear
+            php artisan cache:clear
+
+            # 7. Aktifkan mode maintenance (biar user tidak melihat halaman error pas proses seeder)
             php artisan down || true
 
-            # Jalankan migrasi database dan seeder
-            # --force wajib digunakan agar bisa berjalan di mode production tanpa interaksi prompt
+            # 8. Jalankan migrasi dan seeder secara spesifik
             php artisan migrate --force
-            php artisan db:seed --force
+            php artisan db:seed --class=DatabaseSeeder --force
 
-            # Clear cache agar konfigurasi terbaru terbaca
+            # 9. Lakukan caching optimasi untuk production
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
 
-            # Matikan mode maintenance
+            # 10. Matikan mode maintenance (website online kembali)
             php artisan up
