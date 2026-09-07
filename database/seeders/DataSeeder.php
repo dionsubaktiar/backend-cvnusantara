@@ -5571,43 +5571,48 @@ class DataSeeder extends Seeder
 ]';
         $now = Carbon::now()->toDateString();
         $data = json_decode($jsondata, true);
-        foreach ($data as $entry) {
-            if (strpos($entry['tanggal'], '2024') !== false) {
-                Data::create([
-                    'tanggal' => $entry['tanggal'],
-                    'nopol' => $entry['nopol'],
-                    'driver' => $entry['driver'],
-                    'origin' => $entry['origin'],
-                    'destinasi' => $entry['destinasi'],
-                    'uj' => $entry['uj'],
-                    'harga' => $entry['harga'],
-                    'status' => $entry['status'],
-                    'status_sj' => 'Diterima/Terkirim',
-                    'tanggal_update_sj' => $now
-                ]);
-            } else {
-                Data::create([
-                    'tanggal' => $entry['tanggal'],
-                    'nopol' => $entry['nopol'],
-                    'driver' => $entry['driver'],
-                    'origin' => $entry['origin'],
-                    'destinasi' => $entry['destinasi'],
-                    'uj' => $entry['uj'],
-                    'harga' => $entry['harga'],
-                    'status' => $entry['status'],
-                    'status_sj' => 'Belum selesai',
-                    'tanggal_update_sj' => $now
-                ]);
+
+        // Hanya seed data jika tabel data masih kosong
+        if (Data::count() === 0) {
+            foreach ($data as $entry) {
+                if (strpos($entry['tanggal'], '2024') !== false) {
+                    Data::create([
+                        'tanggal' => $entry['tanggal'],
+                        'nopol' => $entry['nopol'],
+                        'driver' => $entry['driver'],
+                        'origin' => $entry['origin'],
+                        'destinasi' => $entry['destinasi'],
+                        'uj' => $entry['uj'],
+                        'harga' => $entry['harga'],
+                        'status' => $entry['status'],
+                        'status_sj' => 'Diterima/Terkirim',
+                        'tanggal_update_sj' => $now
+                    ]);
+                } else {
+                    Data::create([
+                        'tanggal' => $entry['tanggal'],
+                        'nopol' => $entry['nopol'],
+                        'driver' => $entry['driver'],
+                        'origin' => $entry['origin'],
+                        'destinasi' => $entry['destinasi'],
+                        'uj' => $entry['uj'],
+                        'harga' => $entry['harga'],
+                        'status' => $entry['status'],
+                        'status_sj' => 'Belum selesai',
+                        'tanggal_update_sj' => $now
+                    ]);
+                }
             }
         }
 
-        Account::create([
-            'pin' => '172179',
-            'role' => 'Super'
-        ]);
-        Account::create([
-            'pin' => '000111',
-            'role' => 'Admin'
-        ]);
+        // Cari dulu akun berdasarkan role, jika belum ada baru buat (firstOrCreate)
+        Account::firstOrCreate(
+            ['role' => 'Super'],
+            ['pin' => '172179']
+        );
+        Account::firstOrCreate(
+            ['role' => 'Admin'],
+            ['pin' => '000111']
+        );
     }
 }
