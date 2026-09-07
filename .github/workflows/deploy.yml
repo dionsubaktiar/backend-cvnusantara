@@ -33,9 +33,6 @@ jobs:
             # 1. Masuk ke direktori backend di Hostinger
             cd ~/domains/rinsgloballogistic.com/public_html/backend
 
-            # Pastikan maintenance mode selalu dimatikan saat script selesai / exit
-            trap 'php artisan up 2>/dev/null || true' EXIT
-
             # 2. Bersihkan file/symlink config jika rusak, lalu sinkronkan kode dari GitHub
             if [ -f config ] || [ -L config ]; then
                 rm -rf config
@@ -47,11 +44,9 @@ jobs:
             mkdir -p config
             chmod 755 config
             chmod 644 config/*.php 2>/dev/null || true
-            echo "--- Isi direktori config ---"
-            ls -la config || true
 
-            # 2.2 Pastikan direktori storage dan cache tersedia
-            mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+            # 2.2 Pastikan direktori storage, cache, dan resources/views tersedia
+            mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache resources/views
             chmod -R 775 storage bootstrap/cache
 
             # 3. Install dependensi di server dengan bypass script proc_open Hostinger
@@ -93,9 +88,8 @@ jobs:
             php artisan db:seed --class=DatabaseSeeder --force
 
             # 10. Lakukan caching optimasi untuk production
-            php artisan config:cache || echo "Config cache skipped or warning, continuing..."
-            php artisan route:cache || echo "Route cache skipped or warning, continuing..."
-            php artisan view:cache || echo "View cache skipped or warning, continuing..."
+            php artisan config:cache
+            php artisan route:cache
 
             # 11. Matikan mode maintenance
             php artisan up
