@@ -36,6 +36,19 @@ jobs:
             # 2. Ambil kode terbaru dari GitHub
             git pull origin main
 
+            # 2.1 Pastikan direktori config valid dan bukan file/symlink rusak
+            if [ -f config ] || [ -L config ]; then
+                rm -rf config
+            fi
+            git checkout HEAD -- config || true
+            mkdir -p config
+            chmod 755 config
+            chmod -R 644 config/*.php 2>/dev/null || true
+
+            # 2.2 Pastikan direktori storage dan cache tersedia
+            mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache
+            chmod -R 775 storage bootstrap/cache
+
             # 3. Install dependensi di server dengan bypass script proc_open Hostinger
             composer install --no-dev --optimize-autoloader --no-scripts
 
