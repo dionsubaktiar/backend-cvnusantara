@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+Route::get('data/periods', [DataController::class, 'periods']);
 Route::resource('data', DataController::class);
 Route::get('sum', [DataController::class, 'sum']);
 Route::put('setlunas/{id}', [DataController::class, 'setLunas']);
